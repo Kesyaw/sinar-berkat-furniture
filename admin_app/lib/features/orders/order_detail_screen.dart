@@ -148,6 +148,29 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+  Future<void> _createPaymentLink() async {
+    try {
+      final result = await ApiClient.post(
+        '/payments/orders/${widget.orderId}/create-link',
+        {},
+      );
+      final url = result['paymentUrl'] as String;
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Gagal buat payment link: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -344,6 +367,45 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                   Text(order.adminNotes!,
                       style: const TextStyle(fontSize: 13)),
                 ]),
+
+              // Payment link button (hanya saat WAITING_PAYMENT)
+              if (order.status == 'WAITING_PAYMENT') ...[
+                Card(
+                  color: Colors.blue.withOpacity(0.1),
+                  child: InkWell(
+                    onTap: _createPaymentLink,
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(Icons.payment, color: Colors.white, size: 20),
+                          ),
+                          const SizedBox(width: 12),
+                          const Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Generate Payment Link',
+                                  style: TextStyle(fontWeight: FontWeight.w600)),
+                              Text('Buka halaman pembayaran Midtrans',
+                                  style: TextStyle(fontSize: 12, color: Colors.grey)),
+                            ],
+                          ),
+                          const Spacer(),
+                          const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
 
               // Action button
               if (_nextStatus.containsKey(order.status)) ...[
