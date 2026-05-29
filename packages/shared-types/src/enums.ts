@@ -1,0 +1,37 @@
+export enum ProductStatus {
+  READY_STOCK = "READY_STOCK",
+  PREORDER = "PREORDER",
+  CUSTOM = "CUSTOM",
+  OUT_OF_STOCK = "OUT_OF_STOCK",
+}
+
+export enum OrderStatus {
+  PENDING_REVIEW = "PENDING_REVIEW",
+  WAITING_PAYMENT = "WAITING_PAYMENT",
+  PROCESSING = "PROCESSING",
+  PRODUCTION = "PRODUCTION",
+  SHIPPED = "SHIPPED",
+  COMPLETED = "COMPLETED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum PaymentStatus {
+  PENDING = "PENDING",
+  PAID = "PAID",
+  EXPIRED = "EXPIRED",
+  FAILED = "FAILED",
+  REFUNDED = "REFUNDED",
+}
+
+export enum CustomRequestStatus {
+  OPEN = "OPEN",
+  IN_DISCUSSION = "IN_DISCUSSION",
+  QUOTED = "QUOTED",
+  CONFIRMED = "CONFIRMED",
+  CANCELLED = "CANCELLED",
+}
+
+export enum UserRole {
+  CUSTOMER = "CUSTOMER",
+  ADMIN = "ADMIN",
+}
