@@ -61,4 +61,19 @@ export class OrdersController {
   ) {
     return this.ordersService.updateShipping(id, shippingCost);
   }
+
+  @Get(':id/whatsapp-message')
+  @UseGuards(AuthGuard('supabase-jwt'), RolesGuard)
+  @Roles('ADMIN')
+  async getWhatsappMessage(@Param('id') id: string) {
+    const order = await this.ordersService.findOne(id);
+    const message = this.ordersService.generateWhatsappMessage(order);
+    const phone = order.customerPhone.replace(/^0/, '62').replace(/\D/g, '');
+    const encoded = encodeURIComponent(message);
+    return {
+      message,
+      phone,
+      whatsappUrl: `https://wa.me/${phone}?text=${encoded}`,
+    };
+  }
 }

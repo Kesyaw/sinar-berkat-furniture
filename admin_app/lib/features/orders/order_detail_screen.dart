@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../orders/providers/order_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../core/api/api_client.dart';
 
 class OrderDetailScreen extends StatefulWidget {
   final String orderId;
@@ -129,6 +131,23 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     }
   }
 
+  Future<void> _openWhatsApp() async {
+    try {
+      final result = await ApiClient.get('/orders/${widget.orderId}/whatsapp-message');
+      final url = result['whatsappUrl'] as String;
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Gagal buka WhatsApp: $e')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -187,6 +206,45 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                 if (order.notes != null)
                   _infoRow('Catatan', order.notes!),
               ]),
+              const SizedBox(height: 12),
+
+              // Tombol WhatsApp
+              Card(
+                color: const Color(0xFF25D366).withOpacity(0.1),
+                child: InkWell(
+                  onTap: _openWhatsApp,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF25D366),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(Icons.chat, color: Colors.white, size: 20),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Hubungi Customer via WhatsApp',
+                                style: TextStyle(fontWeight: FontWeight.w600)),
+                            Text(
+                              order.customerPhone,
+                              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               const SizedBox(height: 12),
 
               // Items

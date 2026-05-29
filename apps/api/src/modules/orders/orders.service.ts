@@ -122,4 +122,48 @@ export class OrdersService {
       },
     });
   }
+
+  // === METHOD BARU TAMBAHAN DI SINI ===
+
+  generateWhatsappMessage(order: any): string {
+    const items = order.items
+      .map((item: any) => `• ${item.productName} x${item.quantity} = Rp ${this.formatPrice(item.subtotal)}`)
+      .join('\n');
+
+    const statusLabel: Record<string, string> = {
+      PENDING_REVIEW: 'Menunggu Konfirmasi',
+      WAITING_PAYMENT: 'Menunggu Pembayaran',
+      PROCESSING: 'Sedang Diproses',
+      PRODUCTION: 'Dalam Produksi',
+      SHIPPED: 'Sedang Dikirim',
+      COMPLETED: 'Selesai',
+      CANCELLED: 'Dibatalkan',
+    };
+
+    return `Halo ${order.customerName},
+
+Berikut update pesanan Anda di *Sinar Berkat Furniture*:
+
+*No. Order:* ${order.orderNumber}
+*Status:* ${statusLabel[order.status] ?? order.status}
+
+*Detail Pesanan:*
+${items}
+
+*Subtotal:* Rp ${this.formatPrice(order.subtotal)}
+*Ongkir:* Rp ${this.formatPrice(order.shippingCost)}
+*Total:* Rp ${this.formatPrice(order.total)}
+
+*Alamat Pengiriman:*
+${order.shippingAddress}
+
+${order.adminNotes ? `*Catatan:* ${order.adminNotes}\n` : ''}Terima kasih telah berbelanja di Sinar Berkat Furniture! 🪑
+
+Ada pertanyaan? Balas pesan ini.`;
+  }
+
+  private formatPrice(value: any): string {
+    const num = parseFloat(value?.toString() ?? '0');
+    return num.toLocaleString('id-ID');
+  }
 }
