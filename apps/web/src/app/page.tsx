@@ -15,7 +15,7 @@ export default async function HomePage() {
       <section className="bg-gradient-to-br from-stone-800 to-stone-600 text-white py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">Furniture Berkualitas</h1>
-          <p className="text-stone-300 text-lg mb-8">Tersedia ready stock, preorder, dan custom sesuai kebutuhan.</p>
+          <p className="text-stone-300 text-lg mb-8">Tersedia ready stock, dan preorder sesuai kebutuhan.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/products" className="bg-white text-stone-800 px-8 py-3 rounded-full font-semibold hover:bg-stone-100 transition">Lihat Produk</Link>
             <a href={"https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent("Halo, saya ingin konsultasi furniture")} target="_blank" rel="noopener noreferrer" className="bg-green-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-green-600 transition">Konsultasi Gratis</a>
@@ -52,9 +52,9 @@ export default async function HomePage() {
 
       <section className="bg-green-50 border-t border-green-100 py-12 px-4">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-bold text-stone-800 mb-3">Butuh Furniture Custom?</h2>
+          <h2 className="text-2xl font-bold text-stone-800 mb-3">Butuh Furniture Berkualitas?</h2>
           <p className="text-stone-600 mb-6">Konsultasikan kebutuhan Anda langsung dengan kami via WhatsApp</p>
-          <a href={"https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent("Halo, saya ingin pesan furniture custom")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-green-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-green-600 transition">Chat WhatsApp Sekarang</a>
+          <a href={"https://wa.me/" + WA_NUMBER + "?text=" + encodeURIComponent("Halo, saya ingin pesan furniture")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 bg-green-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-green-600 transition">Chat WhatsApp Sekarang</a>
         </div>
       </section>
     </main>
@@ -64,8 +64,8 @@ export default async function HomePage() {
 function ProductCard({ product }: { product: any }) {
   const primaryImage = product.images?.find((i: any) => i.isPrimary) ?? product.images?.[0]
   const imageUrl = primaryImage ? "https://brsmsxqddpsprayawwde.supabase.co/storage/v1/object/public/product-images/" + primaryImage.storagePath : null
-  const statusLabel: Record<string, string> = { READY_STOCK: "Ready", PREORDER: "Pre-Order", CUSTOM: "Custom", OUT_OF_STOCK: "Habis" }
-  const statusColor: Record<string, string> = { READY_STOCK: "bg-green-100 text-green-700", PREORDER: "bg-orange-100 text-orange-700", CUSTOM: "bg-blue-100 text-blue-700", OUT_OF_STOCK: "bg-gray-100 text-gray-500" }
+  const statusLabel: Record<string, string> = { READY_STOCK: "Ready", PREORDER: "Pre-Order", OUT_OF_STOCK: "Habis" }
+  const statusColor: Record<string, string> = { READY_STOCK: "bg-green-100 text-green-700", PREORDER: "bg-orange-100 text-orange-700", OUT_OF_STOCK: "bg-gray-100 text-gray-500" }
   return (
     <Link href={"/products/" + product.id} className="group">
       <div className="bg-white rounded-xl border border-stone-200 overflow-hidden hover:shadow-md transition">

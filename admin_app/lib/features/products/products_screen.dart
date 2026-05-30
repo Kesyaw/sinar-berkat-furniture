@@ -19,7 +19,6 @@ class _ProductsScreenState extends State<ProductsScreen> {
     {'label': 'Semua', 'value': null},
     {'label': 'Ready Stock', 'value': 'READY_STOCK'},
     {'label': 'Preorder', 'value': 'PREORDER'},
-    {'label': 'Custom', 'value': 'CUSTOM'},
     {'label': 'Habis', 'value': 'OUT_OF_STOCK'},
   ];
 

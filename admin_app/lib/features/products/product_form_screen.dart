@@ -322,7 +322,6 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                     value: 'READY_STOCK', child: Text('Ready Stock')),
                 DropdownMenuItem(
                     value: 'PREORDER', child: Text('Pre-Order')),
-                DropdownMenuItem(value: 'CUSTOM', child: Text('Custom')),
                 DropdownMenuItem(
                     value: 'OUT_OF_STOCK', child: Text('Habis')),
               ],
@@ -336,7 +335,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
               decoration: const InputDecoration(
                 labelText: 'Stok (opsional)',
                 border: OutlineInputBorder(),
-                helperText: 'Kosongkan jika custom/preorder',
+                helperText: 'Kosongkan jika preorder',
               ),
               keyboardType: TextInputType.number,
             ),
