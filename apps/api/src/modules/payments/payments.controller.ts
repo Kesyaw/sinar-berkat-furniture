@@ -44,6 +44,14 @@ export class PaymentsController {
     return this.paymentsService.createPaymentLink(orderId);
   }
 
+  // Public endpoint for customer to generate/retrieve their payment link
+  @Post('orders/track/:orderNumber/create-link')
+  @Throttle({ strict: { ttl: 60_000, limit: 5 } })
+  createPublicPaymentLink(@Param('orderNumber') orderNumber: string) {
+    return this.paymentsService.createPublicPaymentLink(orderNumber);
+  }
+
+
   // ──────────────────────────────────────────
   // MIDTRANS WEBHOOK (No auth — called by Midtrans servers)
   // ──────────────────────────────────────────

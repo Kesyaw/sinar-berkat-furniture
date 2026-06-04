@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import PayButton from "./pay-button"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api/v1"
 
@@ -74,6 +75,14 @@ export default async function OrderTrackingPage({ params }: { params: Promise<{ 
               )
             })}
           </div>
+        </div>
+      )}
+
+      {order.status === "WAITING_PAYMENT" && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6">
+          <h2 className="font-semibold text-amber-800 text-sm mb-1">Pesanan Anda Telah Dikonfirmasi</h2>
+          <p className="text-amber-700 text-xs mb-3">Silakan selesaikan pembayaran untuk melanjutkan proses pesanan.</p>
+          <PayButton orderNumber={order.orderNumber} existingPaymentUrl={order.invoice?.payments?.[0]?.paymentUrl} />
         </div>
       )}
 

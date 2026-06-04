@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order.dto';
-import { OrderStatus, Prisma } from '@prisma/client';
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -65,7 +65,18 @@ export class OrdersService {
       where: { orderNumber },
       include: {
         items: true,
-        invoice: true,
+        invoice: {
+          include: {
+            payments: {
+              where: {
+                status: PaymentStatus.PENDING,
+                expiresAt: { gt: new Date() },
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 1,
+            },
+          },
+        },
       },
     });
     if (!order) throw new NotFoundException('Order not found');

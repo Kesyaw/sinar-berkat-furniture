@@ -327,6 +327,22 @@ export class PaymentsService {
     };
   }
 
+  async createPublicPaymentLink(orderNumber: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { orderNumber },
+    });
+    if (!order) throw new NotFoundException('Order not found');
+
+    if (order.status !== OrderStatus.WAITING_PAYMENT) {
+      throw new BadRequestException(
+        'Order is not waiting for payment. Current status: ' + order.status,
+      );
+    }
+
+    return this.createPaymentLink(order.id);
+  }
+
+
   // ============================================================
   // WEBHOOK HANDLER
   // ============================================================

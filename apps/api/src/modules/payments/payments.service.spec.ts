@@ -14,7 +14,7 @@ jest.mock('midtrans-client', () => ({
 
 import * as crypto from 'crypto';
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { getLoggerToken, PinoLogger } from 'nestjs-pino';
 import { PaymentsService } from './payments.service';
@@ -344,6 +344,81 @@ describe('PaymentsService', () => {
       await expect(
         service.handleWebhook(payload as any, JSON.stringify(payload), signature),
       ).rejects.toThrow('Connection to database lost');
+    });
+  });
+
+  // ================================================================
+  // createPublicPaymentLink
+  // ================================================================
+
+  describe('createPublicPaymentLink', () => {
+    const mockOrderForLink = {
+      id: 'order-uuid-1',
+      orderNumber: 'SBF-20260604-1234',
+      status: OrderStatus.WAITING_PAYMENT,
+      customerName: 'Budi Santoso',
+      customerPhone: '08123456789',
+      customerEmail: null,
+      total: '500000',
+      items: [
+        {
+          id: 'item-uuid-1',
+          productName: 'Kursi Jati',
+          unitPrice: '500000',
+          quantity: 1,
+        },
+      ],
+      invoice: null,
+    };
+
+    it('throws NotFoundException if the order does not exist', async () => {
+      prisma.order.findUnique.mockResolvedValue(null);
+
+      await expect(
+        service.createPublicPaymentLink('SBF-99999999-9999'),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('throws BadRequestException if the order is not in WAITING_PAYMENT status', async () => {
+      prisma.order.findUnique.mockResolvedValue({
+        ...mockOrderForLink,
+        status: OrderStatus.PENDING_REVIEW,
+      });
+
+      await expect(
+        service.createPublicPaymentLink('SBF-20260604-1234'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('creates a public payment link successfully when status is WAITING_PAYMENT', async () => {
+      // Stub the internal createPaymentLink call dependencies:
+      // 1. First findUnique in createPublicPaymentLink
+      prisma.order.findUnique.mockResolvedValueOnce(mockOrderForLink);
+      // 2. Second findUnique inside createPaymentLink call
+      prisma.order.findUnique.mockResolvedValueOnce(mockOrderForLink);
+      
+      const mockInvoice = { id: 'invoice-uuid-1' };
+      prisma.invoice.create.mockResolvedValue(mockInvoice);
+
+      const mockSnapInstance = new (require('midtrans-client').Snap)();
+      mockSnapInstance.createTransaction = jest.fn().mockResolvedValue({
+        redirect_url: 'https://app.sandbox.midtrans.com/snap/v2/vtweb/token123',
+        token: 'token123',
+      });
+      service['snap'] = mockSnapInstance;
+
+      const mockPayment = {
+        id: 'payment-uuid-1',
+        paymentUrl: 'https://app.sandbox.midtrans.com/snap/v2/vtweb/token123',
+      };
+      prisma.payment.create.mockResolvedValue(mockPayment);
+
+      const result = await service.createPublicPaymentLink('SBF-20260604-1234');
+
+      expect(prisma.order.findUnique).toHaveBeenCalledWith({
+        where: { orderNumber: 'SBF-20260604-1234' },
+      });
+      expect(result.paymentUrl).toBe('https://app.sandbox.midtrans.com/snap/v2/vtweb/token123');
     });
   });
 });
