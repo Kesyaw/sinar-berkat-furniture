@@ -25,7 +25,7 @@ import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
         // default — applied to most endpoints via the global guard
         name: 'default',
         ttl: 60_000, // 1 minute window
-        limit: 30,
+        limit: 120,
       },
       {
         // strict — for sensitive mutation endpoints (create-link, reconcile)
