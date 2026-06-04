@@ -1,8 +1,17 @@
 import {
-  Controller, Get, Post, Put, Delete,
-  Param, Body, Query, UseGuards,
-  UseInterceptors, UploadedFile,
-  ParseFilePipe, MaxFileSizeValidator,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
   FileTypeValidator,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -89,5 +98,10 @@ export class ProductsController {
   @Roles('ADMIN')
   deleteImage(@Param('id') id: string, @Param('imageId') imageId: string) {
     return this.productsService.deleteImage(id, imageId);
+  }
+
+  @Get(':id/stats')
+  getProductStats(@Param('id') id: string) {
+    return this.productsService.getProductStats(id);
   }
 }

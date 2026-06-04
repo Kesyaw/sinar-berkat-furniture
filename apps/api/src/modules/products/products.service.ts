@@ -1,6 +1,8 @@
 import {
-  Injectable, NotFoundException,
-  ConflictException, BadRequestException,
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
@@ -110,7 +112,11 @@ export class ProductsService {
     });
   }
 
-  async uploadImage(productId: string, file: Express.Multer.File, isPrimary: boolean) {
+  async uploadImage(
+    productId: string,
+    file: Express.Multer.File,
+    isPrimary: boolean,
+  ) {
     await this.findOne(productId);
 
     const ext = file.originalname.split('.').pop();
@@ -160,5 +166,16 @@ export class ProductsService {
       .remove([image.storagePath]);
 
     return this.prisma.productImage.delete({ where: { id: imageId } });
+  }
+
+  async getProductStats(productId: string) {
+    const sold = await this.prisma.orderItem.aggregate({
+      where: {
+        productId,
+        order: { status: 'COMPLETED' },
+      },
+      _sum: { quantity: true },
+    });
+    return { soldCount: sold._sum.quantity ?? 0 };
   }
 }

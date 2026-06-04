@@ -11,10 +11,7 @@ export class InvoicesController {
   @Get()
   @UseGuards(AuthGuard('supabase-jwt'), RolesGuard)
   @Roles('ADMIN')
-  findAll(
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-  ) {
+  findAll(@Query('page') page?: string, @Query('limit') limit?: string) {
     return this.invoicesService.findAll({
       page: page ? parseInt(page) : 1,
       limit: limit ? parseInt(limit) : 20,

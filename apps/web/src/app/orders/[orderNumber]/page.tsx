@@ -3,10 +3,9 @@ import { notFound } from "next/navigation"
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001/api/v1"
 
 async function getOrderByNumber(orderNumber: string) {
-  const res = await fetch(API_URL + "/orders?search=" + orderNumber, { cache: "no-store" })
+  const res = await fetch(API_URL + "/orders/track/" + orderNumber, { cache: "no-store" })
   if (!res.ok) return null
-  const data = await res.json()
-  return data.items?.[0] ?? null
+  return res.json()
 }
 
 function formatPrice(value: string | number): string {

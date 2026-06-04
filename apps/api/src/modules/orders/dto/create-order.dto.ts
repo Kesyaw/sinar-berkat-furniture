@@ -1,6 +1,16 @@
 import {
-  IsString, IsOptional, IsArray,
-  IsInt, IsDecimal, Min, ValidateNested, MinLength,
+  IsString,
+  IsOptional,
+  IsArray,
+  IsInt,
+  IsDecimal,
+  IsEmail,
+  Min,
+  MinLength,
+  MaxLength,
+  Matches,
+  ValidateNested,
+  ArrayMinSize,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
@@ -28,10 +38,15 @@ export class CreateOrderDto {
   customerName: string;
 
   @IsString()
+  @MinLength(5, { message: 'customerPhone must be at least 5 characters' })
+  @MaxLength(20, { message: 'customerPhone must be at most 20 characters' })
+  @Matches(/^[0-9+\-\s()]{5,20}$/, {
+    message: 'customerPhone must contain only digits, spaces, +, -, (, )',
+  })
   customerPhone: string;
 
   @IsOptional()
-  @IsString()
+  @IsEmail({}, { message: 'customerEmail must be a valid email address' })
   customerEmail?: string;
 
   @IsString()
@@ -42,6 +57,7 @@ export class CreateOrderDto {
   notes?: string;
 
   @IsArray()
+  @ArrayMinSize(1, { message: 'Order must contain at least one item' })
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
   items: OrderItemDto[];

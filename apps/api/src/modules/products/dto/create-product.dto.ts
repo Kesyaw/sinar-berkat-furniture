@@ -1,6 +1,11 @@
 import {
-  IsString, IsOptional, IsEnum, IsInt,
-  IsDecimal, MinLength, Min,
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsInt,
+  IsDecimal,
+  MinLength,
+  Min,
 } from 'class-validator';
 import { ProductStatus } from '@prisma/client';
 import { Transform } from 'class-transformer';
@@ -31,6 +36,6 @@ export class CreateProductDto {
   @IsOptional()
   @IsInt()
   @Min(0)
-  @Transform(({ value }) => value ? parseInt(value) : undefined)
+  @Transform(({ value }) => (value ? parseInt(value) : undefined))
   stockQty?: number;
 }

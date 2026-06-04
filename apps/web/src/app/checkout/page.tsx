@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { createOrder, formatPrice } from "@/lib/api"
 import { useCart } from "@/lib/cart-context"
 import { Suspense } from "react"
+import { createClient } from "@/lib/supabase/client"
 
 function CheckoutForm() {
   const router = useRouter()
@@ -19,9 +20,26 @@ function CheckoutForm() {
     shippingAddress: "",
     notes: "",
     productName: "",
+    customerPhonePlaceholder: "08xxxxxxxxxx",
     quantity: "1",
     unitPrice: "",
   })
+
+  useEffect(() => {
+    async function loadUser() {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session?.user) {
+        setForm(prev => ({
+          ...prev,
+          customerName: session.user.user_metadata?.full_name || "",
+          customerEmail: session.user.email || "",
+          customerPhone: session.user.user_metadata?.phone || "",
+        }))
+      }
+    }
+    loadUser()
+  }, [])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
@@ -36,6 +54,10 @@ function CheckoutForm() {
         ? items.map(i => ({ productId: i.productId, productName: i.productName, unitPrice: i.unitPrice, quantity: i.quantity }))
         : [{ productName: form.productName, unitPrice: form.unitPrice, quantity: parseInt(form.quantity) }]
 
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+
       const order = await createOrder({
         customerName: form.customerName,
         customerPhone: form.customerPhone,
@@ -43,7 +65,8 @@ function CheckoutForm() {
         shippingAddress: form.shippingAddress,
         notes: form.notes || undefined,
         items: orderItems,
-      })
+      }, token)
+      
       if (fromCart) clearCart()
       router.push("/orders/" + order.orderNumber)
     } catch (err: any) {

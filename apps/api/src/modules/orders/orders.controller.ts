@@ -1,23 +1,35 @@
 import {
-  Controller, Get, Post, Patch, Param,
-  Body, Query, UseGuards,
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { Throttle } from '@nestjs/throttler';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStatusDto } from './dto/update-order.dto';
+import { UpdateShippingDto } from './dto/update-shipping.dto';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
 import { OrderStatus } from '@prisma/client';
+import { OptionalJwtAuthGuard } from '../../common/guards/optional-jwt.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('orders')
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  // Public — customer bisa buat order
+  // Public — 10 requests/minute per IP to prevent order spam
   @Post()
-  create(@Body() dto: CreateOrderDto) {
-    return this.ordersService.create(dto);
+  @UseGuards(OptionalJwtAuthGuard)
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  create(@Body() dto: CreateOrderDto, @CurrentUser() user?: { id: string }) {
+    return this.ordersService.create(dto, user?.id);
   }
 
   // Admin only
@@ -38,6 +50,27 @@ export class OrdersController {
     });
   }
 
+  @Get('my')
+  @UseGuards(AuthGuard('supabase-jwt'))
+  getMyOrders(
+    @CurrentUser() user: { id: string },
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.ordersService.findByUser(
+      user.id,
+      page ? parseInt(page) : 1,
+      limit ? parseInt(limit) : 20,
+    );
+  }
+
+  // Public order tracking by order number — 10 requests/minute per IP
+  @Get('track/:orderNumber')
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
+  trackOrder(@Param('orderNumber') orderNumber: string) {
+    return this.ordersService.findByOrderNumber(orderNumber);
+  }
+
   @Get(':id')
   @UseGuards(AuthGuard('supabase-jwt'), RolesGuard)
   @Roles('ADMIN')
@@ -55,11 +88,8 @@ export class OrdersController {
   @Patch(':id/shipping')
   @UseGuards(AuthGuard('supabase-jwt'), RolesGuard)
   @Roles('ADMIN')
-  updateShipping(
-    @Param('id') id: string,
-    @Body('shippingCost') shippingCost: number,
-  ) {
-    return this.ordersService.updateShipping(id, shippingCost);
+  updateShipping(@Param('id') id: string, @Body() dto: UpdateShippingDto) {
+    return this.ordersService.updateShipping(id, dto.shippingCost);
   }
 
   @Get(':id/whatsapp-message')

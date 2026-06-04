@@ -105,6 +105,7 @@ model Product {
   images         ProductImage[]
   orderItems     OrderItem[]
   customRequests CustomRequest[]
+  reviews        Review[]
 
   @@index([slug])
   @@index([categoryId])
@@ -240,4 +241,28 @@ model CustomRequest {
 
   @@index([status])
   @@map("custom_requests")
+}
+
+enum ReviewSource {
+  WEBSITE
+  WHATSAPP
+  GOOGLE_MAPS
+}
+
+model Review {
+  id           String       @id @default(uuid())
+  productId    String?
+  customerName String
+  rating       Int
+  comment      String       @db.Text
+  source       ReviewSource @default(WEBSITE)
+  isApproved   Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  product Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+
+  @@index([isApproved])
+  @@index([productId])
+  @@map("reviews")
 }

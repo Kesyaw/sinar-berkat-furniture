@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -14,11 +14,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const errorParam = params.get('error')
+      const messageParam = params.get('message')
+      if (errorParam === 'auth_callback_failed') {
+        setError('Proses login otomatis gagal. Silakan coba masuk kembali.')
+      } else if (errorParam) {
+        setError(errorParam)
+      }
+
+      if (messageParam === 'password_reset_success') {
+        setMessage('Password berhasil diperbarui. Silakan masuk dengan password baru Anda.')
+      }
+    }
+  }, [])
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setMessage(null)
 
     const supabase = createClient()
 
@@ -36,7 +55,7 @@ export default function LoginPage() {
     // Sync user ke NestJS database setelah login berhasil
     if (data.session) {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/sync`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/sync`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -48,13 +67,29 @@ export default function LoginPage() {
             fullName: data.user.user_metadata?.full_name,
           }),
         })
-      } catch {
-        // Sync gagal tidak block login — user tetap bisa masuk
-        console.error('Failed to sync user to backend')
+        if (!res.ok) {
+          throw new Error('Failed to sync session with backend')
+        }
+      } catch (err) {
+        console.error('Failed to sync user to backend:', err)
+        await supabase.auth.signOut()
+        setError('Gagal menyinkronkan sesi dengan server. Silakan coba lagi.')
+        setLoading(false)
+        return
       }
     }
 
-    router.push('/')
+    // Get next param from query string safely
+    let redirectPath = '/'
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const nextParam = params.get('next')
+      if (nextParam && nextParam.startsWith('/')) {
+        redirectPath = nextParam
+      }
+    }
+
+    router.push(redirectPath)
     router.refresh()
   }
 
@@ -82,7 +117,12 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <a href="/forgot-password" className="text-xs text-stone-600 hover:underline">
+                  Lupa password?
+                </a>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -93,6 +133,11 @@ export default function LoginPage() {
                 disabled={loading}
               />
             </div>
+            {message && (
+              <p className="text-sm text-green-600 bg-green-50 px-3 py-2 rounded-md">
+                {message}
+              </p>
+            )}
             {error && (
               <p className="text-sm text-red-600 bg-red-50 px-3 py-2 rounded-md">
                 {error}
@@ -105,6 +150,12 @@ export default function LoginPage() {
             >
               {loading ? 'Memproses...' : 'Masuk'}
             </Button>
+            <p className="text-center text-sm text-stone-600 mt-4">
+              Belum punya akun?{' '}
+              <a href="/register" className="font-semibold text-stone-800 hover:underline">
+                Daftar di sini
+              </a>
+            </p>
           </form>
         </CardContent>
       </Card>

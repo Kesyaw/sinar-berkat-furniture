@@ -34,3 +34,10 @@ pnpm-debug.log*
 
 # Prisma
 prisma/migrations/dev.db
+
+# Test Coverage
+coverage/
+apps/api/coverage/
+
+# TypeScript Build Info
+*.tsbuildinfo
